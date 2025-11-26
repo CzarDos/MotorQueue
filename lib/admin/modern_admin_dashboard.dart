@@ -6,7 +6,6 @@ import 'package:lorenz_app/admin/predictions_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lorenz_app/admin/spare_parts.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:lorenz_app/services/prediction_service.dart';
 
 class ModernAdminDashboard extends StatefulWidget {
   const ModernAdminDashboard({super.key});
@@ -42,10 +41,6 @@ class _ModernAdminDashboardState extends State<ModernAdminDashboard> {
   int completedAppointments = 0;
   int pendingAppointments = 0;
   int rejectedAppointments = 0;
-
-  // Top Services predictions data
-  final PredictionService _predictionService = PredictionService();
-  List<ServiceUsage> _topServicesPredictions = [];
 
   bool get isMobile => false;
   bool get isTablet => false;
@@ -146,14 +141,6 @@ class _ModernAdminDashboardState extends State<ModernAdminDashboard> {
         }
       }
 
-      // Load top services predictions
-      List<ServiceUsage> predictions = [];
-      try {
-        predictions = await _predictionService.getTopServices(limit: 5);
-      } catch (e) {
-        print('Error loading predictions: $e');
-      }
-
       if (mounted) {
         setState(() {
           todayCount = todayCountVar;
@@ -169,8 +156,6 @@ class _ModernAdminDashboardState extends State<ModernAdminDashboard> {
           completedAppointments = completed;
           pendingAppointments = pending;
           rejectedAppointments = rejected;
-          // Top services predictions
-          _topServicesPredictions = predictions;
           isLoading = false;
         });
       }
@@ -829,242 +814,8 @@ class _ModernAdminDashboardState extends State<ModernAdminDashboard> {
                 );
               },
             ),
-
-            // Top Services Section
-            const SizedBox(height: 32),
-            _buildTopServicesSection(),
           ],
         ),
-      ),
-    );
-  }
-
-  // Top Services Section
-  Widget _buildTopServicesSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Top Services',
-          style: TextStyle(
-            fontSize: isMobile ? 18 : 20,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF1A1A1A),
-          ),
-        ),
-        const SizedBox(height: 16),
-        _topServicesPredictions.isEmpty
-            ? _buildNoTopServicesCard()
-            : _buildTopServicesList(),
-      ],
-    );
-  }
-
-  Widget _buildNoTopServicesCard() {
-    return Container(
-      padding: const EdgeInsets.all(48),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.analytics_outlined,
-                size: 64, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            Text(
-              'No booking data available',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Top services will appear once customers start booking',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopServicesList() {
-    return Column(
-      children: _topServicesPredictions.map((prediction) {
-        return _buildTopServiceCard(prediction);
-      }).toList(),
-    );
-  }
-
-  Widget _buildTopServiceCard(ServiceUsage service) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  service.name,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A1A1A),
-                  ),
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.event,
-                      size: 16,
-                      color: Color(0xFF3B82F6),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${service.count} bookings',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF3B82F6),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Usage Info
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total Appointments',
-                    style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-                  ),
-                  Text(
-                    '${service.count}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF3B82F6),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: 1.0, // Full bar for simplicity
-                  backgroundColor: const Color(0xFFE5E7EB),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF3B82F6),
-                  ),
-                  minHeight: 8,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Stats Grid
-          Wrap(
-            spacing: 16,
-            runSpacing: 12,
-            children: [
-              _buildTopServiceStatChip(
-                icon: Icons.event,
-                label: 'Total Bookings',
-                value: '${service.count}',
-                color: const Color(0xFF3B82F6),
-              ),
-              _buildTopServiceStatChip(
-                icon: Icons.info,
-                label: 'Service Type',
-                value: service.name,
-                color: const Color(0xFF10B981),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopServiceStatChip({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(fontSize: 10, color: color.withOpacity(0.8)),
-              ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -3258,8 +3009,6 @@ class _InProcessDialogWidgetState extends State<_InProcessDialogWidget> {
               const SizedBox(height: 12),
 
               // Spare Parts Selector
-              // FIXED: In the _InProcessDialogWidgetState, replace the spare parts selector section
-
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('spare_parts')
@@ -3278,8 +3027,7 @@ class _InProcessDialogWidgetState extends State<_InProcessDialogWidget> {
                           'name': data['name'] ?? 'Unknown',
                           'price': (data['price'] as num?)?.toDouble() ?? 0.0,
                           'stock': (data['stock'] as num?)?.toInt() ?? 0,
-                          'imageUrl': data[
-                              'imageUrl'], // ← CRITICAL: This must be included
+                          'imageUrl': data['imageUrl'],
                         };
                       })
                       .where((part) => part['stock'] as int > 0)
@@ -3524,8 +3272,7 @@ class _InProcessDialogWidgetState extends State<_InProcessDialogWidget> {
                                           'name': partName,
                                           'price': partPrice,
                                           'quantity': quantity,
-                                          'imageUrl':
-                                              imageUrl, // ← CRITICAL: Must include this
+                                          'imageUrl': imageUrl,
                                         });
                                       });
 

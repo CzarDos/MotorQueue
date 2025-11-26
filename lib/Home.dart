@@ -138,17 +138,17 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                 ),
-                _modernDrawerTile(
-                  icon: Icons.feedback_outlined,
-                  title: 'Feedback',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const FeedbackPage()),
-                    );
-                  },
-                ),
+                // _modernDrawerTile(
+                //   icon: Icons.feedback_outlined,
+                //   title: 'Feedback',
+                //   onTap: () {
+                //     Navigator.pop(context);
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (_) => const FeedbackPage()),
+                //     );
+                //   },
+                // ),
                 const Divider(height: 32),
                 _modernDrawerTile(
                   icon: Icons.logout,
@@ -647,11 +647,6 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(builder: (_) => const HomePage()),
                 );
               } else if (index == 1) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ProfilePage()),
-                );
-              } else if (index == 2) {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -659,14 +654,19 @@ class _HomePageState extends State<HomePage> {
                           const MyAppointmentsPage(appointments: [])),
                 );
                 _loadNextAppointment();
+              } else if (index == 2) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProfilePage()),
+                );
               }
             },
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.person_outline), label: ''),
-              BottomNavigationBarItem(
                   icon: Icon(Icons.calendar_month), label: ''),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.person_outline), label: ''),
             ],
             selectedItemColor: Colors.blue,
             unselectedItemColor: Colors.grey,

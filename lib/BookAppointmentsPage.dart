@@ -109,6 +109,35 @@ class _BookingAppointmentsPageState extends State<BookingAppointmentsPage> {
       return;
     }
 
+    // Validate that the selected date and time are not in the past
+    final now = DateTime.now();
+    // Example format "8:00 AM"
+    final timeParts = selectedTimeSlot!.split(' '); // "8:00 AM" -> ["8:00", "AM"]
+    final time = timeParts[0].split(':'); // "8:00" -> ["8", "00"]
+    var hour = int.parse(time[0]);
+    final minute = int.parse(time[1]);
+
+    if (timeParts.length == 2 && timeParts[1].toUpperCase() == 'PM' && hour < 12) {
+      hour += 12;
+    }
+    if (timeParts.length == 2 && timeParts[1].toUpperCase() == 'AM' && hour == 12) {
+      hour = 0; // Midnight case
+    }
+
+    final selectedDateTime = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+      hour,
+      minute,
+    );
+
+    // Allow a small buffer (e.g., 1 minute) to account for processing time
+    if (selectedDateTime.isBefore(now.subtract(const Duration(minutes: 1)))) {
+      _showErrorSnackBar('You cannot book an appointment in the past.');
+      return;
+    }
+
     if (brandController.text.trim().isEmpty) {
       _showErrorSnackBar('Please enter your motorcycle brand');
       return;
